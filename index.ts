@@ -1,6 +1,7 @@
 import { App, Construct, Stack, StackProps } from "@aws-cdk/core";
 import { HostedZone } from "@aws-cdk/aws-route53";
 import { DnsValidatedCertificate } from "@aws-cdk/aws-certificatemanager";
+import { ParameterTier, StringParameter } from "@aws-cdk/aws-ssm";
 
 
 export class WildcardCertConstruct extends Construct {
@@ -24,11 +25,27 @@ export class WildcardCertConstruct extends Construct {
   }
 }
 
-class WildcardCertStack extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps) {
-    super(scope, id, props);
+export class SSMParameterConstruct extends Construct {
+  constructor(scope: Construct, id: string, props: { domainName: string, region?: string }) {
+    super(scope, id)
 
-    new WildcardCertConstruct(this, id, { domainName: 'mattgilbride.com' })
+    new StringParameter(this, `${id}-Parameter`, {
+      description: 'Value of my main domain name and corresponding Route 53 Hosted Zone',
+      parameterName: 'domainName',
+      stringValue: props.domainName,
+      tier: ParameterTier.STANDARD
+    })
+  }
+}
+
+class WildcardCertStack extends Stack {
+  constructor(scope: Construct, id: string, stackProps: StackProps) {
+    super(scope, id, stackProps);
+
+    const props = { domainName: 'mattgilbride.com' }
+
+    new WildcardCertConstruct(this, id, props)
+    new SSMParameterConstruct(this, `${id}-SSM`, props)
   }
 }
 
