@@ -13,7 +13,7 @@ export class WildcardCertConstruct extends Construct {
     });
 
     // wildcard certificate
-    new DnsValidatedCertificate(
+    const cert = new DnsValidatedCertificate(
       this,
       `${id}-DnsValidatedCertificate`,
       {
@@ -22,10 +22,17 @@ export class WildcardCertConstruct extends Construct {
         region: props.region || 'us-east-1', // Cloudfront only checks this region for certificates.
       },
     );
+
+    new StringParameter(this, `${id}-CertParameter`, {
+      description: "Value of my main domain's wildcard certificate",
+      parameterName: 'certificateArn',
+      stringValue: cert.certificateArn,
+      tier: ParameterTier.STANDARD
+    })
   }
 }
 
-export class SSMParameterConstruct extends Construct {
+export class DomainNameParameterConstruct extends Construct {
   constructor(scope: Construct, id: string, props: { domainName: string, region?: string }) {
     super(scope, id)
 
@@ -45,7 +52,7 @@ class WildcardCertStack extends Stack {
     const props = { domainName: 'mattgilbride.com' }
 
     new WildcardCertConstruct(this, id, props)
-    new SSMParameterConstruct(this, `${id}-SSM`, props)
+    new DomainNameParameterConstruct(this, `${id}-SSM`, props)
   }
 }
 
