@@ -18,6 +18,7 @@ export class WildcardCertConstruct extends Construct {
       `${id}-DnsValidatedCertificate`,
       {
         domainName: `*.${props.domainName}`,
+        subjectAlternativeNames: [props.domainName],
         hostedZone: zone,
         region: props.region || 'us-east-1', // Cloudfront only checks this region for certificates.
       },
